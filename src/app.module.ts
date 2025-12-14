@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MessagesModule } from './messages/messages.module';
+import { RoutineModule } from './routine/routine.module';
+
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { MessagesModule } from './messages/messages.module';
     UsersModule,
     AuthModule,
     MessagesModule,
+    RoutineModule,
   ],
   controllers: [],
   providers: [],

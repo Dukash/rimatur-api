@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { RoutineActivity } from './entities/routine-activity.entity';
 
 @Injectable()
@@ -11,37 +11,78 @@ export class RoutineService {
   ) {}
 
   async create(data: any) {
-    const routine = this.routineRepository.create(data);
-    return await this.routineRepository.save(routine);
+    try {
+      console.log('[CREATE ROUTINE] Recebido:', data);
+      
+      const routine = this.routineRepository.create(data);
+      const saved = await this.routineRepository.save(routine);
+      
+      console.log('[CREATE ROUTINE] ✅ Criada:', saved);
+      return saved;
+    } catch (error) {
+      console.error('[CREATE ROUTINE] ❌ ERRO:', error.message);
+      throw error;
+    }
   }
 
   async findByUserAndDate(userId: number, date: string) {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    try {
+      console.log(`[FIND ROUTINE] userId=${userId}, date=${date}`);
 
-    return await this.routineRepository.find({
-      where: {
-        userId: userId,
-        startTime: { 
-          _type: 'between',
-          _value: [startOfDay, endOfDay]
-        } as any,
-      },
-      order: {
-        startTime: 'ASC'
-      }
-    });
+      // Criar timestamps para o dia inteiro
+      const startOfDay = new Date(`${date}T00:00:00Z`);
+      const endOfDay = new Date(`${date}T23:59:59Z`);
+
+      console.log(`[FIND ROUTINE] Buscando entre ${startOfDay} e ${endOfDay}`);
+
+      // ✅ FORMA CORRETA - Usar Between do TypeORM
+      const activities = await this.routineRepository.find({
+        where: {
+          userId: userId,
+          startTime: Between(startOfDay, endOfDay),
+        },
+        order: {
+          startTime: 'ASC',
+        },
+      });
+
+      console.log(`[FIND ROUTINE] ✅ Encontradas ${activities.length}`);
+      return activities;
+    } catch (error) {
+      console.error('[FIND ROUTINE] ❌ ERRO:', error.message);
+      throw error;
+    }
   }
 
   async update(id: number, data: any) {
-    await this.routineRepository.update(id, data);
-    return await this.routineRepository.findOne({ where: { id } });
+    try {
+      console.log(`[UPDATE ROUTINE] id=${id}, data:`, data);
+
+      await this.routineRepository.update(id, data);
+      
+      const updated = await this.routineRepository.findOne({ 
+        where: { id } 
+      });
+
+      console.log(`[UPDATE ROUTINE] ✅ Atualizada:`, updated);
+      return updated;
+    } catch (error) {
+      console.error('[UPDATE ROUTINE] ❌ ERRO:', error.message);
+      throw error;
+    }
   }
 
   async delete(id: number) {
-    return await this.routineRepository.delete(id);
+    try {
+      console.log(`[DELETE ROUTINE] id=${id}`);
+
+      const result = await this.routineRepository.delete(id);
+
+      console.log(`[DELETE ROUTINE] ✅ Deletada`);
+      return { success: true, affected: result.affected };
+    } catch (error) {
+      console.error('[DELETE ROUTINE] ❌ ERRO:', error.message);
+      throw error;
+    }
   }
 }
