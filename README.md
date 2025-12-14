@@ -20,6 +20,9 @@ Visão geral
 ------------
 Backend da plataforma Rimatur. Responsável por autenticação simples, gerenciamento de usuários, mensagens e rotinas. API REST com TypeORM + PostgreSQL.
 
+## Vídeo de funcionamento
+https://drive.google.com/drive/folders/1IFQ_UXXVO3_acToMum-WibK9AP29oWMc?usp=sharing
+
 Principais comandos
 -------------------
 ```bash
