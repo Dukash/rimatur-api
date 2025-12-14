@@ -25,34 +25,33 @@ export class RoutineService {
     }
   }
 
-  async findByUserAndDate(userId: number, date: string) {
-    try {
-      console.log(`[FIND ROUTINE] userId=${userId}, date=${date}`);
+async findByUserAndDate(userId: number, date: string) {
+  try {
+    const startOfDay = new Date(`${date}T00:00:00Z`);
+    const endOfDay = new Date(`${date}T23:59:59Z`);
 
-      // Criar timestamps para o dia inteiro
-      const startOfDay = new Date(`${date}T00:00:00Z`);
-      const endOfDay = new Date(`${date}T23:59:59Z`);
-
-      console.log(`[FIND ROUTINE] Buscando entre ${startOfDay} e ${endOfDay}`);
-
-      // ✅ FORMA CORRETA - Usar Between do TypeORM
-      const activities = await this.routineRepository.find({
-        where: {
+    // pessoal do usuário OU qualquer tarefa de time
+    const activities = await this.routineRepository.find({
+      where: [
+        {
           userId: userId,
+          visibility: 'pessoal',
           startTime: Between(startOfDay, endOfDay),
         },
-        order: {
-          startTime: 'ASC',
+        {
+          visibility: 'time',
+          startTime: Between(startOfDay, endOfDay),
         },
-      });
+      ],
+      order: { startTime: 'ASC' },
+    });
 
-      console.log(`[FIND ROUTINE] ✅ Encontradas ${activities.length}`);
-      return activities;
-    } catch (error) {
-      console.error('[FIND ROUTINE] ❌ ERRO:', error.message);
-      throw error;
-    }
+    return activities;
+  } catch (error) {
+    throw error;
   }
+}
+
 
   async update(id: number, data: any) {
     try {
