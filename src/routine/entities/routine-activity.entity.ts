@@ -33,6 +33,10 @@ export class RoutineActivity {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
+  // 👇 novo campo: nome de quem criou (gestor ou colaborador)
+  @Column({ nullable: true })
+  createdByName: string;
+
   @ManyToOne(() => User)
   user: User;
 }

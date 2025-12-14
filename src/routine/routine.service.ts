@@ -13,10 +13,15 @@ export class RoutineService {
   async create(data: any) {
     try {
       console.log('[CREATE ROUTINE] Recebido:', data);
-      
-      const routine = this.routineRepository.create(data);
+
+      // data pode conter createdByName, que será mapeado pela entidade
+      const routine = this.routineRepository.create({
+        ...data,
+        createdByName: data.createdByName,
+      });
+
       const saved = await this.routineRepository.save(routine);
-      
+
       console.log('[CREATE ROUTINE] ✅ Criada:', saved);
       return saved;
     } catch (error) {
@@ -25,42 +30,42 @@ export class RoutineService {
     }
   }
 
-async findByUserAndDate(userId: number, date: string) {
-  try {
-    const startOfDay = new Date(`${date}T00:00:00Z`);
-    const endOfDay = new Date(`${date}T23:59:59Z`);
+  async findByUserAndDate(userId: number, date: string) {
+    try {
+      const startOfDay = new Date(`${date}T00:00:00Z`);
+      const endOfDay = new Date(`${date}T23:59:59Z`);
 
-    // pessoal do usuário OU qualquer tarefa de time
-    const activities = await this.routineRepository.find({
-      where: [
-        {
-          userId: userId,
-          visibility: 'pessoal',
-          startTime: Between(startOfDay, endOfDay),
-        },
-        {
-          visibility: 'time',
-          startTime: Between(startOfDay, endOfDay),
-        },
-      ],
-      order: { startTime: 'ASC' },
-    });
+      // pessoal do usuário OU qualquer tarefa de time
+      const activities = await this.routineRepository.find({
+        where: [
+          {
+            userId: userId,
+            visibility: 'pessoal',
+            startTime: Between(startOfDay, endOfDay),
+          },
+          {
+            visibility: 'time',
+            startTime: Between(startOfDay, endOfDay),
+          },
+        ],
+        order: { startTime: 'ASC' },
+      });
 
-    return activities;
-  } catch (error) {
-    throw error;
+      return activities;
+    } catch (error) {
+      console.error('[FIND ROUTINE] ❌ ERRO:', error.message);
+      throw error;
+    }
   }
-}
-
 
   async update(id: number, data: any) {
     try {
       console.log(`[UPDATE ROUTINE] id=${id}, data:`, data);
 
       await this.routineRepository.update(id, data);
-      
-      const updated = await this.routineRepository.findOne({ 
-        where: { id } 
+
+      const updated = await this.routineRepository.findOne({
+        where: { id },
       });
 
       console.log(`[UPDATE ROUTINE] ✅ Atualizada:`, updated);

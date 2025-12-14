@@ -1,4 +1,14 @@
-import { Controller, Post, Body, Get, Patch, Delete, Param, Query, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Patch,
+  Delete,
+  Param,
+  Query,
+  BadRequestException,
+} from '@nestjs/common';
 import { RoutineService } from './routine.service';
 
 @Controller('routine')
@@ -8,10 +18,22 @@ export class RoutineController {
   // ✅ CRIAR NOVA ATIVIDADE
   @Post()
   async create(@Body() body: any) {
-    const { title, description, category, visibility, startTime, userId, status, createdByRole } = body;
+    const {
+      title,
+      description,
+      category,
+      visibility,
+      startTime,
+      userId,
+      status,
+      createdByRole,
+      createdByName, // 👈 novo campo
+    } = body;
 
     if (visibility === 'time' && createdByRole !== 'gestor') {
-      throw new BadRequestException('Apenas gestores podem criar atividades para o time');
+      throw new BadRequestException(
+        'Apenas gestores podem criar atividades para o time',
+      );
     }
 
     return await this.routineService.create({
@@ -22,6 +44,8 @@ export class RoutineController {
       startTime: new Date(startTime),
       userId,
       status: status || 'pendente',
+      createdByRole,
+      createdByName, // 👈 enviado para o service
     });
   }
 
@@ -36,13 +60,18 @@ export class RoutineController {
     }
 
     try {
-      const activities = await this.routineService.findByUserAndDate(Number(userId), date);
-      console.log(`[CONTROLLER GET] ✅ Retornando ${activities.length} atividades`);
-      
+      const activities = await this.routineService.findByUserAndDate(
+        Number(userId),
+        date,
+      );
+      console.log(
+        `[CONTROLLER GET] ✅ Retornando ${activities.length} atividades`,
+      );
+
       // ✅ SEMPRE retorna array
       return Array.isArray(activities) ? activities : [];
     } catch (error) {
-      console.error(`[CONTROLLER GET] ❌ ERRO:`, error.message);
+      console.error(`[CONTROLLER GET] ❌ ERRO:`, (error as any).message);
       throw error;
     }
   }
@@ -57,7 +86,7 @@ export class RoutineController {
       console.log(`[CONTROLLER PATCH] ✅ Atualizada`);
       return result;
     } catch (error) {
-      console.error(`[CONTROLLER PATCH] ❌ ERRO:`, error.message);
+      console.error(`[CONTROLLER PATCH] ❌ ERRO:`, (error as any).message);
       throw error;
     }
   }
@@ -72,7 +101,7 @@ export class RoutineController {
       console.log(`[CONTROLLER DELETE] ✅ Deletada`);
       return result;
     } catch (error) {
-      console.error(`[CONTROLLER DELETE] ❌ ERRO:`, error.message);
+      console.error(`[CONTROLLER DELETE] ❌ ERRO:`, (error as any).message);
       throw error;
     }
   }
