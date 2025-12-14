@@ -31,7 +31,7 @@ export class Message {
   @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn()  // ← ADICIONE ISTO
+  @UpdateDateColumn()
   updatedAt: Date;
 
   @Column({ default: false })

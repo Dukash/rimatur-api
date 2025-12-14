@@ -40,19 +40,46 @@ export class MessagesService {
     return { success: true, message: `${messageIds.length} mensagem(ns) marcada(s) como lida(s)` };
   }
 
-  // Marcar todas as mensagens de uma conversa como lidas
-  async markConversationAsRead(userId: number, otherUserId: number) {
-    await this.messagesRepository
-      .createQueryBuilder()
-      .update(Message)
-      .set({ isRead: true })
-      .where('receiver_id = :userId', { userId })
-      .andWhere('sender_id = :otherUserId', { otherUserId })
-      .andWhere('isRead = :isRead', { isRead: false })
-      .execute();
-    return { success: true };
-  }
+async markConversationAsRead(userId: number, otherUserId: number) {
+  try {
+    console.log(`\n[MARK READ] Iniciando - userId=${userId}, otherUserId=${otherUserId}`);
 
+    // ✅ Passo 1: Buscar (ADICIONE AWAIT AQUI!)
+    const messages = await this.messagesRepository.find({
+      where: {
+        receiver: { id: userId },
+        sender: { id: otherUserId },
+      },
+      relations: ['sender', 'receiver'],
+    });
+
+    console.log(`[MARK READ] Encontradas ${messages.length} mensagens`);
+
+    // ✅ Passo 2: Filtrar apenas as não lidas
+    const unreadMessages = messages.filter(m => !m.isRead);
+    console.log(`[MARK READ] Não lidas: ${unreadMessages.length}`);
+
+    // ✅ Passo 3: Marcar como lidas
+    for (const msg of unreadMessages) {
+      msg.isRead = true;
+      await this.messagesRepository.save(msg);
+      console.log(`[MARK READ] ✅ Msg ${msg.id} atualizada`);
+    }
+
+    console.log(`[MARK READ] ✅ CONCLUÍDO - ${unreadMessages.length} marcadas\n`);
+
+    return {
+      success: true,
+      affected: unreadMessages.length,
+    };
+  } catch (error) {
+    console.error(`[MARK READ] ❌ ERRO:`, error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
 
   async create(createMessageDto: CreateMessageDto) {
     const sender = await this.usersRepository.findOne({

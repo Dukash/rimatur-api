@@ -3,16 +3,24 @@ import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { MarkReadDto } from './dto/mark-read.dto';
 
+
 @Controller('messages')
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
+  // ✅ MARCAR CONVERSA COMO LIDA - POST COM BODY
+  @Post('conversation/read')
+  markConversationAsRead(@Body() body: { userId: number; otherUserId: number }) {
+    return this.messagesService.markConversationAsRead(body.userId, body.otherUserId);
+  }
+
+  // Marcar mensagem individual como lida
   @Patch(':id/read')
   markAsRead(@Param('id') id: string) {
     return this.messagesService.markAsRead(Number(id));
   }
 
-  // Endpoints POST para compatibilidade com o frontend
+  // Endpoints POST para compatibilidade
   @Post('mark-read')
   markRead(@Body() markReadDto: MarkReadDto) {
     return this.messagesService.markMessagesAsRead(markReadDto.messageIds);
@@ -28,27 +36,10 @@ export class MessagesController {
     return this.messagesService.markMessagesAsRead(markReadDto.messageIds);
   }
 
-  // Marcar todas as mensagens de uma conversa como lidas
-  @Patch('conversation/read')
-  markConversationAsRead(
-    @Query('userId') userId: string,
-    @Query('otherUserId') otherUserId: string,
-  ) {
-    return this.messagesService.markConversationAsRead(
-      Number(userId),
-      Number(otherUserId),
-    );
-  }
-
+  // Criar nova mensagem
   @Post()
   create(@Body() createMessageDto: CreateMessageDto) {
     return this.messagesService.create(createMessageDto);
-  }
-
-  // Caixa de entrada do usuário
-  @Get()
-  findInbox(@Query('userId') userId: string) {
-    return this.messagesService.findInbox(Number(userId));
   }
 
   // Histórico com busca
@@ -58,5 +49,11 @@ export class MessagesController {
     @Query('query') query: string,
   ) {
     return this.messagesService.searchHistory(Number(userId), query || '');
+  }
+
+  // Caixa de entrada do usuário
+  @Get()
+  findInbox(@Query('userId') userId: string) {
+    return this.messagesService.findInbox(Number(userId));
   }
 }
